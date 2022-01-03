@@ -1,6 +1,7 @@
 package dpaste
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -8,22 +9,19 @@ import (
 )
 
 const (
-	apiEndpoint       = "https:/dpaste.com/api/v2"
+	apiEndpoint       = "https://dpaste.com/api/"
 	CreateSuccessCode = 201
 )
 
-// Dpaste is an instance of th dpaste.com service.
+// Dpaste is an instance of the dpaste.com service.
 type Dpaste struct {
 	Token      string
 	HttpClient http.Client
 }
 
-// Send request from the dpaste
-func (d Dpaste) Send(r request) (response *http.Response, err error) {
-	// @todo change the request interface (since now HttpClient is part of the Dpaste instance).
-	response, err = r.Send(d)
-
-	return
+// Create request from the dpaste
+func (d Dpaste) Create(r CreateRequest) (CreateResponse, error) {
+	return r.send(d)
 }
 
 // interface for Dpaste client compatible requests
@@ -33,34 +31,67 @@ type request interface {
 
 // CreateRequest is a Dpaste request to create a new paste
 type CreateRequest struct {
-	content    string
-	title      string
-	expiryDays int
-	syntax     string
+	Content    string
+	Title      string
+	ExpiryDays int
+	Syntax     string
 }
 
-// Send CreateRequest (though, probably should be something else...)
-func (r CreateRequest) Send(client Dpaste) (response *http.Response, err error) {
-	pData := url.Values{}
+type CreateResponse struct {
+	Response *http.Response
+	Success  bool
+	Code     int
+	Location string
+	Expiry   string
+}
 
-	pData.Set("content", r.content)
-	pData.Set("title", r.title)
-	pData.Set("expiry_days", strconv.Itoa(r.expiryDays))
+func (r CreateRequest) toQuery() (url.Values, error) {
+	data := url.Values{}
 
-	// @todo: We need validation for this against the API enumeration, also probably "auto" resolution with the undocumented
-	// 		API.
-	pData.Set("syntax", r.syntax)
+	// Content is required
+	if len(r.Content) == 0 {
+		return nil, errors.New("invalid request")
+	}
+	data.Set("content", r.Content)
 
-	hr, err := http.NewRequest("POST", apiEndpoint, strings.NewReader(pData.Encode()))
+	if len(r.Title) > 0 {
+		data.Set("title", r.Title)
+	}
+	if r.ExpiryDays > 0 {
+		data.Set("expiry_days", strconv.Itoa(r.ExpiryDays))
+	}
+	// @todo To do anything with "syntax" we need to validate it here first
 
-	hr.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	return data, nil
+}
 
-	if client.Token != "" {
-		hr.Header.Add("Authorization", "Bearer"+client.Token)
+// send CreateRequest (though, probably should be something else...)
+func (r CreateRequest) send(client Dpaste) (response CreateResponse, err error) {
+
+	// Setup request body
+	pData, err := r.toQuery()
+	if err != nil {
+		return
 	}
 
-	// Parse response or what?
-	response, err = client.HttpClient.Do(hr)
+	hr, err := http.NewRequest("POST", apiEndpoint, strings.NewReader(pData.Encode()))
+	if err != nil {
+		return
+	}
+
+	// Add request headers
+	hr.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if client.Token != "" {
+		hr.Header.Add("Authorization", "Bearer "+client.Token)
+	}
+
+	httpResponse, err := client.HttpClient.Do(hr)
+	if err != nil {
+		return
+	}
+
+	success := httpResponse.StatusCode == CreateSuccessCode
+	response = CreateResponse{httpResponse, success, httpResponse.StatusCode, httpResponse.Header.Get("Location"), httpResponse.Header.Get("Expires")}
 
 	return
 }
