@@ -1,8 +1,8 @@
 package main
 
 import (
-	"dpaste-cli/cmd/create"
 	"dpaste-cli/lib/dpaste"
+	"dpaste-cli/subcommands/create"
 	"github.com/urfave/cli/v2"
 	"net/http"
 )
