@@ -1,7 +1,8 @@
 package dpaste
 
 import (
-	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 // CreateRequest is a Dpaste request to create a new paste
 type CreateRequest struct {
-	Content    string
+	Content    io.Reader
 	Title      string
 	ExpiryDays int
 	Syntax     string
@@ -21,11 +22,12 @@ func (r CreateRequest) toQuery(client Dpaste) (url.Values, error) {
 	data := url.Values{}
 	var err error
 
-	// Content is required
-	if len(r.Content) == 0 {
-		return nil, errors.New("invalid request") // content needed
+	s, err := ioutil.ReadAll(r.Content)
+	if err != nil {
+		return nil, err
 	}
-	data.Set("content", r.Content)
+
+	data.Set("content", string(s))
 
 	if len(r.Title) > 0 {
 		data.Set("title", r.Title)
