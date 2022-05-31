@@ -1,8 +1,8 @@
 package config
 
 import (
-	"dpaste-cli/config"
 	"fmt"
+	"github.com/ditsuke/dpaste-cli/config"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

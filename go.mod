@@ -1,4 +1,4 @@
-module dpaste-cli
+module github.com/ditsuke/dpaste-cli
 
 go 1.18
 

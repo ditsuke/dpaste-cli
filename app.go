@@ -1,10 +1,10 @@
 package main
 
 import (
-	cfm "dpaste-cli/config"
-	"dpaste-cli/lib/dpaste"
-	"dpaste-cli/subcommands/config"
-	"dpaste-cli/subcommands/create"
+	cfm "github.com/ditsuke/dpaste-cli/config"
+	"github.com/ditsuke/dpaste-cli/lib/dpaste"
+	"github.com/ditsuke/dpaste-cli/subcommands/config"
+	"github.com/ditsuke/dpaste-cli/subcommands/create"
 	"github.com/urfave/cli/v2"
 	"net/http"
 )
