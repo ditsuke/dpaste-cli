@@ -1,7 +1,9 @@
 package main
 
 import (
+	cfm "dpaste-cli/config"
 	"dpaste-cli/lib/dpaste"
+	"dpaste-cli/subcommands/config"
 	"dpaste-cli/subcommands/create"
 	"github.com/urfave/cli/v2"
 	"net/http"
@@ -10,6 +12,10 @@ import (
 // getApp() configures and returns a cli.App instance
 func getApp() *cli.App {
 	var client = new(dpaste.Dpaste)
+	cfg, err := cfm.LoadConfig(cfm.DefaultConfigFile())
+	if err != nil {
+		panic(err)
+	}
 
 	return &cli.App{
 		Name:    "dpaste cli",
@@ -21,7 +27,7 @@ func getApp() *cli.App {
 				Email: "ditsuke@pm.me",
 			},
 		},
-		Flags: getGlobalFlags(),
+		Flags: globalFlags(*cfg),
 
 		// "create" as the default action, although this doesn't allow flags but perhaps that's fine
 		Action: func(context *cli.Context) error {
@@ -29,6 +35,7 @@ func getApp() *cli.App {
 		},
 		Commands: []*cli.Command{
 			create.GetCommand(client),
+			config.GetCommand(),
 		},
 
 		// Get an instance of the dpaste client before the app starts
@@ -39,14 +46,16 @@ func getApp() *cli.App {
 	}
 }
 
-// getGlobalFlags() returns a flag array of the app's global flags
-func getGlobalFlags() []cli.Flag {
+// globalFlags() returns the app's top level flags
+func globalFlags(cfg cfm.Config) []cli.Flag {
 	// @todo if we use "create" as the default command and support flags we'll need those here too
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:     "token",
+			Name:     cfm.FlagDpasteToken,
 			Aliases:  []string{"t"},
-			Usage:    "Dpaste token, optional.",
+			Value:    cfg.MustGet(cfm.Token),
+			EnvVars:  []string{cfm.EnvDpasteToken},
+			Usage:    "optional dpaste.com user token",
 			Required: false,
 		},
 		// config file// @todo
