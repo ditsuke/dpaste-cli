@@ -83,16 +83,15 @@ func DefaultConfigFile() string {
 	return strings.Replace(DefaultPath, "{HOME_DIR}", home, -1)
 }
 
-func LoadConfig(path string) (config *Config, err error) {
+func LoadConfig(path string) (config Config, err error) {
 	configBytes, err := ioutil.ReadFile(path)
 	if err != nil && err.(*fs.PathError) == nil {
 		return
 	}
-	if config == nil {
-		config = &Config{}
+	if len(configBytes) == 0 {
 		err = nil
 		return
 	}
-	err = yaml.Unmarshal(configBytes, config)
+	err = yaml.Unmarshal(configBytes, &config)
 	return
 }

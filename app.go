@@ -28,7 +28,7 @@ func getApp() *cli.App {
 				Email: "ditsuke@pm.me",
 			},
 		},
-		Flags: globalFlags(*cfg),
+		Flags: globalFlags(cfg),
 
 		// "create" as the default action, although this doesn't allow flags but perhaps that's fine
 		Action: func(context *cli.Context) error {
@@ -45,7 +45,7 @@ func getApp() *cli.App {
 
 		// Get an instance of the dpaste client before the app starts
 		Before: func(c *cli.Context) error {
-			*client = *(dpaste.New(c.String("token"), &http.Client{}))
+			*client = *(dpaste.New(c.String(cfm.FlagDpasteToken), &http.Client{}))
 			return nil
 		},
 	}
@@ -58,7 +58,7 @@ func globalFlags(cfg cfm.Config) []cli.Flag {
 		&cli.StringFlag{
 			Name:     cfm.FlagDpasteToken,
 			Aliases:  []string{"t"},
-			Value:    cfg.MustGet(cfm.Token),
+			Value:    cfg.Token,
 			EnvVars:  []string{cfm.EnvDpasteToken},
 			Usage:    "optional dpaste.com user token",
 			Required: false,
