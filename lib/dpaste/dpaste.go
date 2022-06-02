@@ -3,6 +3,7 @@ package dpaste
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -89,10 +90,13 @@ func (d Dpaste) isValidSyntax(syntax string) (bool, error) {
 			return false, err
 		}
 		jsonBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return false, fmt.Errorf("could not fetch syntax choices: %w", err)
+		}
 		var decodedData interface{}
 		err = json.Unmarshal(jsonBody, &decodedData)
 		if err != nil {
-			return false, errors.New("failed to unmarshal json")
+			return false, fmt.Errorf("failed to unmarshal json: %w", err)
 		}
 		syntaxJson = decodedData.(map[string]interface{})
 		if len(syntaxJson) == 0 {
