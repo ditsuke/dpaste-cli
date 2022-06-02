@@ -3,7 +3,7 @@ package create
 import (
 	"errors"
 	"fmt"
-	"github.com/ditsuke/dpaste-cli/lib/dpaste"
+	"github.com/ditsuke/dpaste-cli/dpaste"
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 	"io"

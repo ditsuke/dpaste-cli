@@ -2,7 +2,7 @@ package main
 
 import (
 	cfm "github.com/ditsuke/dpaste-cli/config"
-	"github.com/ditsuke/dpaste-cli/lib/dpaste"
+	"github.com/ditsuke/dpaste-cli/dpaste"
 	"github.com/ditsuke/dpaste-cli/subcommands/config"
 	"github.com/ditsuke/dpaste-cli/subcommands/create"
 	"github.com/urfave/cli/v2"

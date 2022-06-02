@@ -1,7 +1,7 @@
 package create
 
 import (
-	"github.com/ditsuke/dpaste-cli/lib/dpaste"
+	"github.com/ditsuke/dpaste-cli/dpaste"
 	"github.com/urfave/cli/v2"
 )
 
