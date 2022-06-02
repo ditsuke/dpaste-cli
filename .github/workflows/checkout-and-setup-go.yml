@@ -1,0 +1,24 @@
+on:
+  workflow_call:
+    inputs:
+      os:
+        default: "ubuntu-latest"
+        required: true
+        type: string
+      go_version:
+        default: "1.17"
+        required: false
+        type: string
+
+jobs:
+  checkout-and-setup:
+    name: Checkout and setup go
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
