@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"github.com/ditsuke/dpaste-cli/config"
 	"github.com/urfave/cli/v2"
-	"log"
-	"os"
 )
 
 const (
 	FlagConfigFile = "config"
+)
+
+const (
+	ExitCodeUsage             = 1
+	ExitCodeReadConfigFailure = 2
 )
 
 func GetCommand() *cli.Command {
@@ -22,26 +25,23 @@ func GetCommand() *cli.Command {
 				Usage:     "get config",
 				ArgsUsage: "KEY",
 				Action: func(c *cli.Context) error {
+					stdout := c.App.Writer
+
 					args := c.Args()
 					opt := args.Get(0)
 					if opt == "" {
-						return fmt.Errorf("key is required")
+						return cli.Exit("config requires a key", ExitCodeUsage)
 					}
 					cfg, err := config.LoadConfig(c.String(FlagConfigFile))
 					if err != nil {
-						return err
+						return cli.Exit(err.Error(), ExitCodeReadConfigFailure)
 					}
 					val, err := cfg.Get(opt)
 					if err != nil {
-						return err
+						return cli.Exit(err.Error(), ExitCodeUsage)
 					}
-					fmt.Println(val)
+					_, _ = fmt.Fprintln(stdout, val)
 					return nil
-				},
-				OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-					logger := log.New(os.Stderr, "", log.LstdFlags)
-					logger.Println("Error:", err.Error())
-					return fmt.Errorf("config error: %w", err)
 				},
 			},
 			{
@@ -52,19 +52,19 @@ func GetCommand() *cli.Command {
 					args := c.Args()
 					opt := args.Get(0)
 					if opt == "" {
-						return fmt.Errorf("config requires a key")
+						return cli.Exit("config requires a key", ExitCodeUsage)
 					}
 					val := args.Get(1)
 					if val == "" {
-						return fmt.Errorf("config requires a value")
+						return cli.Exit("config requires a value", ExitCodeUsage)
 					}
 					cfg, err := config.LoadConfig(c.String(FlagConfigFile))
 					if err != nil {
-						return err
+						return cli.Exit(err.Error(), ExitCodeReadConfigFailure)
 					}
 					err = cfg.Set(opt, val)
 					if err != nil {
-						return err
+						return cli.Exit(err.Error(), ExitCodeUsage)
 					}
 					return cfg.Write(c.String(FlagConfigFile))
 				},

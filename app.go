@@ -6,6 +6,7 @@ import (
 	"github.com/ditsuke/dpaste-cli/subcommands/config"
 	"github.com/ditsuke/dpaste-cli/subcommands/create"
 	"github.com/urfave/cli/v2"
+	"log"
 	"net/http"
 )
 
@@ -32,6 +33,10 @@ func getApp() *cli.App {
 		// "create" as the default action, although this doesn't allow flags but perhaps that's fine
 		Action: func(context *cli.Context) error {
 			return create.Create(context, client)
+		},
+		ExitErrHandler: func(context *cli.Context, err error) {
+			logger := log.New(context.App.ErrWriter, "", 0)
+			logger.Println("Error:", err.Error())
 		},
 		Commands: []*cli.Command{
 			create.GetCommand(client),

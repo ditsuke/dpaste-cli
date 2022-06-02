@@ -7,6 +7,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 	"io"
+	"log"
 	"os"
 )
 
@@ -18,6 +19,9 @@ const (
 
 // Create is a cli.Command handler to create a new paste on dpaste
 func Create(c *cli.Context, client *dpaste.Dpaste) error {
+	stdoutLogger := log.New(c.App.Writer, "", 0)
+	errLogger := log.New(c.App.ErrWriter, "", 0)
+
 	content, err := getContent(c)
 	if err != nil {
 		return cli.Exit("nothing to read: "+err.Error(), exitErrRead)
@@ -35,15 +39,26 @@ func Create(c *cli.Context, client *dpaste.Dpaste) error {
 		return cli.Exit(err.Error(), exitGeneralFailure)
 	}
 
-	writer := c.App.Writer
-
 	if creationResponse.Success {
-		_, _ = fmt.Fprintf(writer, "Link: %q.\nExpires In: %q", creationResponse.Location, creationResponse.Expiry)
+		stdoutLogger.Println("paste created")
+
+		link := creationResponse.Location
+		if link == "" {
+			return cli.Exit("failed to get paste link. file a bug report?", exitNoPaste)
+		}
+		stdoutLogger.Println("link: ", link)
+
+		expires := creationResponse.Expiry
+		if expires == "" {
+			errLogger.Println("failed to get paste expiry date")
+			return nil
+		} else {
+			stdoutLogger.Println("expires: ", expires)
+		}
 		return nil
 	}
 
-	// Probably though, we should be printing custom here with error writer and yada yada
-	return cli.Exit(fmt.Sprintf("Failed to create paste: %v", creationResponse.Response.Status), exitGeneralFailure)
+	return cli.Exit(fmt.Sprintf("failed to create paste: %v", creationResponse.Response.Status), exitGeneralFailure)
 }
 
 // getContent returns an io.Reader for the content to upload, defaulting to standard
